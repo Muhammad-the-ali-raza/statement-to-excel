@@ -10,7 +10,7 @@ Copy the SMS alerts into a Notepad `.txt` file, pick the file in the app, and yo
 ## Usage
 
 **Option 1: the .exe (no Python needed)**
-Download `Statement to Excel.exe` from the [Releases](../../releases) page and double-click it.
+Download `Statement-to-Excel.exe` from the [Releases](../../releases) page and double-click it.
 
 **Option 2: run from source**
 ```
