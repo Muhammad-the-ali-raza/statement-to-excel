@@ -63,10 +63,22 @@ def parse(text):
         typ = typ.capitalize()
         desc = re.sub(r"\s*\.\.\.$", "", desc)
         desc = re.sub(r"\s*\S?Monthly\s*\S?$", " [Monthly]", desc).strip()
-        date = datetime.datetime.strptime(d, "%d-%m-%Y" if len(d) == 10 else "%d-%m-%y").date()
-        time = datetime.datetime.strptime(t, "%H:%M:%S" if t.count(":") == 2 else "%H:%M").time()
+        try:
+            date = datetime.datetime.strptime(d, "%d-%m-%Y" if len(d) == 10 else "%d-%m-%y").date()
+            time = datetime.datetime.strptime(t, "%H:%M:%S" if t.count(":") == 2 else "%H:%M").time()
+        except ValueError:  # impossible date/time such as 31-02-26 or 25:61
+            skipped.append(line)
+            continue
         rows.append((date, time, acct, desc, categorize(desc, typ), typ, float(amt.replace(",", ""))))
     return rows, skipped
+
+
+def put_text(cell, value):
+    """Stores text from the input file as plain text, so a description such as
+    '=HYPERLINK(...)' can never run as an Excel formula."""
+    cell.value = value
+    if isinstance(value, str):
+        cell.data_type = "s"
 
 
 def header_row(ws, row, heads):
@@ -84,7 +96,7 @@ def build_workbook(rows, src_name, out_path):
     ws.title = "Transactions"
     ws["A1"] = "HABIBMETRO Account Statement"
     ws["A1"].font = Font(name=FONT, bold=True, size=14)
-    ws["A2"] = f"Source: SMS alerts in '{src_name}' (descriptions may be truncated in the original alerts)"
+    put_text(ws["A2"], f"Source: SMS alerts in '{src_name}' (descriptions may be truncated in the original alerts)")
     ws["A2"].font = Font(name=FONT, italic=True, color="808080")
     header_row(ws, 4, ["S.No", "Date", "Time", "Account", "Description", "Category", "Type",
                        "Debit (PKR)", "Credit (PKR)", "Running Balance (PKR)"])
@@ -97,7 +109,11 @@ def build_workbook(rows, src_name, out_path):
                 amt if typ == "Credited" else None,
                 f"=I{r}-H{r}" if i == 0 else f"=J{r-1}+I{r}-H{r}"]
         for c, v in enumerate(vals, 1):
-            cell = ws.cell(row=r, column=c, value=v)
+            cell = ws.cell(row=r, column=c)
+            if c in (4, 5, 6):  # account, description, category come from the file
+                put_text(cell, v)
+            else:
+                cell.value = v
             cell.font = Font(name=FONT)
             cell.border = BORDER
             if typ == "Credited":
@@ -133,7 +149,7 @@ def build_workbook(rows, src_name, out_path):
     rng = lambda col: f"Transactions!${col}${start}:${col}${end}"
     for i, cat in enumerate(cats):
         r = 4 + i
-        s.cell(row=r, column=1, value=cat)
+        put_text(s.cell(row=r, column=1), cat)
         s.cell(row=r, column=2, value=f"=COUNTIF({rng('F')},A{r})")
         s.cell(row=r, column=3, value=f"=SUMIF({rng('F')},A{r},{rng('H')})")
         s.cell(row=r, column=4, value=f"=SUMIF({rng('F')},A{r},{rng('I')})")
@@ -173,6 +189,9 @@ def convert():
         return
 
     out = os.path.splitext(src)[0] + ".xlsx"
+    if os.path.exists(out) and not messagebox.askyesno(
+            "File already exists", f"This Excel file already exists:\n\n{out}\n\nReplace it?"):
+        return
     try:
         build_workbook(rows, os.path.basename(src), out)
     except PermissionError:
