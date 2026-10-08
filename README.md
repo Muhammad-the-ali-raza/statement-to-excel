@@ -2,6 +2,13 @@
 
 A small Windows desktop tool that turns HABIBMETRO bank SMS alerts into a formatted Excel statement.
 
+## ⬇️ Download
+
+**[Download Statement-to-Excel.exe](https://github.com/Muhammad-the-ali-raza/statement-to-excel/releases/latest/download/Statement-to-Excel.exe)** (Windows, about 30 MB)
+
+You don't need to install Python or anything else: download the file and double-click it.
+On first run Windows may show *"Windows protected your PC"*. Click **More info**, then **Run anyway**.
+
 Copy the SMS alerts into a Notepad `.txt` file, pick the file in the app, and you get an `.xlsx` with:
 
 - **Transactions** sheet: date, time, account, description, category, debit and credit, plus a running balance (Excel formulas)
@@ -10,7 +17,7 @@ Copy the SMS alerts into a Notepad `.txt` file, pick the file in the app, and yo
 ## Usage
 
 **Option 1: the .exe (no Python needed)**
-Download `Statement-to-Excel.exe` from the [Releases](../../releases) page and double-click it.
+Use the [Download](#️-download) link above, or get it from the [Releases](../../releases) page.
 
 **Option 2: run from source**
 ```
