@@ -1,0 +1,20 @@
+# Never commit real bank data: only the fake sample.txt is allowed
+*.txt
+!sample.txt
+!requirements.txt
+*.xlsx
+*.xls
+*.csv
+
+# Photos / screenshots / archives
+*.jpg
+*.jpeg
+*.png
+*.zip
+
+# Build output (upload the .exe to GitHub Releases instead)
+*.exe
+build/
+dist/
+*.spec
+__pycache__/
